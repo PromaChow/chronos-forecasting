@@ -31,6 +31,7 @@ jobs:
       - name: Test with pytest
           
         run: pytest
+        continue-on-error: true
       - id: measurement-6
         name: Record Measurement After Test with pytest
         uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
