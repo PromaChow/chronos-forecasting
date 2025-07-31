@@ -18,14 +18,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v4 
+        uses: actions/setup-python@v4
         with:
           python-version: 3.x
       - name: Install dependencies
-        run: "python -m pip install --upgrade pip
+        run: 'python -m pip install --upgrade pip
           pip install radon lizard pylint mccabe xenon pycodestyle cognitive-complexity
           cloc scc
-          "
+          '
       - id: measurement-4
         name: Record Measurement After Install dependencies
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
@@ -84,14 +84,14 @@ jobs:
           label: Check complexity thresholds with Xenon
           task: get-measurement
       - name: Generate detailed reports
-        run: "mkdir -p metrics
+        run: 'mkdir -p metrics
           # JSON reports
           radon cc . --json > metrics/complexity.json
           radon raw . --json > metrics/raw_metrics.json
           radon hal . --json > metrics/halstead.json
           lizard . --xml > metrics/lizard_report.xml
           cp metrics_report.txt metrics/full_report.txt
-          "
+          '
       - id: measurement-14
         name: Record Measurement After Generate detailed reports
         uses: green-coding-solutions/eco-ci-energy-estimation@v4

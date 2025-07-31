@@ -8,7 +8,6 @@ jobs:
   evaluate-and-print:
     env:
       RESULTS_CSV: eval-ci-metrics-${{ github.event.pull_request.number }}.csv
-    if: contains(github.event.pull_request.labels.*.name, 'run-eval')
     runs-on: ubuntu-latest
     steps:
       - name: Start Energy Measurement
