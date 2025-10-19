@@ -1,37 +1,65 @@
-# Evaluates Chronos-Bolt (Small) model on selected datasets
 name: Evaluate
-
 on:
-  # Runs only with read privilages for the GITHUB_TOKEN
-  pull_request:
-    branches: ["main"] # Run on PRs to main branch
-    types:
-      - opened      # When a PR is created
-      - reopened    # When a closed PR is reopened
-      - synchronize # When new commits are pushed to the PR
-      - labeled     # When a label is added to the PR
+  push:
+    branches:
+      - main
 
 jobs:
   evaluate-and-print:
-    if: contains(github.event.pull_request.labels.*.name, 'run-eval')  # Only run if 'run-eval' label is added
-    runs-on: ubuntu-latest
     env:
-      RESULTS_CSV: "eval-ci-metrics-${{ github.event.pull_request.number }}.csv"
-
+      RESULTS_CSV: eval-ci-metrics-${{ github.event.pull_request.number }}.csv
+    if: contains(github.event.pull_request.labels.*.name, 'run-eval')
+    runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install Dependencies
         run: pip install ".[evaluation]" -f https://download.pytorch.org/whl/cpu/torch_stable.html
-
+      - id: measurement-4
+        name: Record Measurement After Install Dependencies
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install Dependencies
+          task: get-measurement
       - name: Run Eval Script
-        run: python scripts/evaluation/evaluate.py ci/evaluate/backtest_config.yaml $RESULTS_CSV --chronos-model-id=amazon/chronos-bolt-small --device=cpu --torch-dtype=float32
-      
+        run: python scripts/evaluation/evaluate.py ci/evaluate/backtest_config.yaml
+          $RESULTS_CSV --chronos-model-id=amazon/chronos-bolt-small --device=cpu --torch-dtype=float32
+      - id: measurement-6
+        name: Record Measurement After Run Eval Script
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Run Eval Script
+          task: get-measurement
       - name: Print CSV
         run: cat $RESULTS_CSV
+      - id: measurement-8
+        name: Record Measurement After Print CSV
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Print CSV
+          task: get-measurement
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json
